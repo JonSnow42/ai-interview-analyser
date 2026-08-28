@@ -17,15 +17,37 @@ def esc(val) -> str:
 st.set_page_config(
     page_title="AI Interview Panel Simulator",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # Load environment variables
 dotenv.load_dotenv(os.path.join(os.path.dirname(__file__), "backend/.env"))
 
 # Determine default credentials
-default_key = os.getenv("GEMINI_API_KEY", "")
-default_model = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+def get_api_key() -> str:
+    key = os.getenv("GEMINI_API_KEY", "")
+    if key:
+        return key
+    try:
+        if "GEMINI_API_KEY" in st.secrets:
+            return st.secrets["GEMINI_API_KEY"]
+    except Exception:
+        pass
+    return ""
+
+def get_model_name() -> str:
+    model = os.getenv("GEMINI_MODEL", "")
+    if model:
+        return model
+    try:
+        if "GEMINI_MODEL" in st.secrets:
+            return st.secrets["GEMINI_MODEL"]
+    except Exception:
+        pass
+    return "gemini-3.6-flash"
+
+default_key = get_api_key()
+default_model = get_model_name()
 
 # Session State Initialization
 if "api_key" not in st.session_state:
@@ -447,28 +469,6 @@ Provide your final decision, confidence score, rationale, decisive evidence, and
 
     return call_gemini(prompt, system_instruction, FinalDecision)
 
-# ----------------- Sidebar Configurations -----------------
-with st.sidebar:
-    st.image("frontend/public/favicon.svg" if os.path.exists("frontend/public/favicon.svg") else "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/briefcase.svg", width=50)
-    st.title("Simulator Config")
-    
-    st.subheader("Credentials")
-    key_input = st.text_input("Gemini API Key", value=st.session_state.api_key, type="password")
-    if key_input:
-        st.session_state.api_key = key_input
-        
-    model_input = st.text_input("Gemini Model", value=st.session_state.model_name)
-    if model_input:
-        st.session_state.model_name = model_input
-        
-    st.markdown("---")
-    
-    # Reset State Button
-    if st.session_state.pipeline_results is not None:
-        if st.button("Reset Evaluation & Upload New"):
-            st.session_state.pipeline_results = None
-            st.rerun()
-
 # ----------------- UI Layout / Execution Stage -----------------
 
 st.markdown('<div class="app-header">', unsafe_allow_html=True)
@@ -482,6 +482,9 @@ if is_connected:
     st.markdown('<span class="badge-status badge-active">Gemini Live Enabled</span>', unsafe_allow_html=True)
 else:
     st.markdown('<span class="badge-status" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">Gemini Config Error / Missing Key</span>', unsafe_allow_html=True)
+
+if not is_connected:
+    st.warning("⚠️ **Gemini API Key is not configured!** Please set the `GEMINI_API_KEY` variable in your environment variables or Streamlit Cloud Secrets (under Advanced Settings).")
 
 st.write("")
 
@@ -598,12 +601,19 @@ else:
     # ----------------- Dashboard Workspace -----------------
     results = st.session_state.pipeline_results
     
-    # Candidate Selector
-    cand_sel = st.radio(
-        "Select Candidate to Review:",
-        ["Candidate A (Rohan Malhotra)", "Candidate B (Ananya Iyer)"],
-        horizontal=True
-    )
+    # Candidate Selector & Reset button
+    col_cand, col_reset = st.columns([5, 2])
+    with col_cand:
+        cand_sel = st.radio(
+            "Select Candidate to Review:",
+            ["Candidate A (Rohan Malhotra)", "Candidate B (Ananya Iyer)"],
+            horizontal=True
+        )
+    with col_reset:
+        st.write("") # spacing spacer
+        if st.button("🔄 Reset & Upload New", use_container_width=True):
+            st.session_state.pipeline_results = None
+            st.rerun()
     
     candidate_key = "A" if "Rohan" in cand_sel else "B"
     cand_data = results[candidate_key]

@@ -298,10 +298,11 @@ function App() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
               
               <div style={{ gridColumn: 'span 2' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
+                <label htmlFor="jobDescription" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
                   1. Job Description *
                 </label>
                 <input 
+                  id="jobDescription"
                   type="file" 
                   accept=".pdf" 
                   className="config-input" 
@@ -312,10 +313,11 @@ function App() {
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
+                <label htmlFor="resumeA" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
                   2. Resume A (Rohan Malhotra) *
                 </label>
                 <input 
+                  id="resumeA"
                   type="file" 
                   accept=".pdf" 
                   className="config-input" 
@@ -326,10 +328,11 @@ function App() {
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
+                <label htmlFor="resumeB" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
                   3. Resume B (Ananya Iyer) *
                 </label>
                 <input 
+                  id="resumeB"
                   type="file" 
                   accept=".pdf" 
                   className="config-input" 
@@ -340,10 +343,11 @@ function App() {
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
+                <label htmlFor="transcriptA" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
                   4. Interview Transcript A (optional)
                 </label>
                 <input 
+                  id="transcriptA"
                   type="file" 
                   accept=".pdf" 
                   className="config-input" 
@@ -358,10 +362,11 @@ function App() {
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
+                <label htmlFor="transcriptB" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
                   5. Interview Transcript B (optional)
                 </label>
                 <input 
+                  id="transcriptB"
                   type="file" 
                   accept=".pdf" 
                   className="config-input" 
@@ -378,7 +383,7 @@ function App() {
             </div>
 
             <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
-              <button type="submit" className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>
+              <button type="submit" className="btn btn-primary" style={{ padding: '0.75rem 2rem' }} aria-label="Run Evaluation Pipeline">
                 <Play size={16} /> Run Evaluation Pipeline
               </button>
             </div>

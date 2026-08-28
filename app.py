@@ -2,10 +2,16 @@ import streamlit as st
 import os
 import json
 import dotenv
+import html
 from pypdf import PdfReader
 from typing import TypedDict, List
 import google.generativeai as genai
 from concurrent.futures import ThreadPoolExecutor
+
+def esc(val) -> str:
+    if val is None:
+        return ""
+    return html.escape(str(val))
 
 # Page Configuration
 st.set_page_config(
@@ -658,7 +664,7 @@ else:
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <div>
                     <div style="font-size: 0.8rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">Consensus Recommendation</div>
-                    <div style="font-size: 2rem; font-weight: 800; color: #ffffff;">{rec}</div>
+                    <div style="font-size: 2rem; font-weight: 800; color: #ffffff;">{esc(rec)}</div>
                 </div>
                 <div style="text-align: right;">
                     <div style="font-size: 0.8rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">Panel Confidence</div>
@@ -668,7 +674,7 @@ else:
                 </div>
             </div>
             <h4 style="color: #a5b4fc; margin-bottom: 0.5rem;">Consensus Rationale</h4>
-            <p style="font-size: 0.9rem; line-height: 1.6; color: #d1d5db;">{decision.get('rationale', '')}</p>
+            <p style="font-size: 0.9rem; line-height: 1.6; color: #d1d5db;">{esc(decision.get('rationale', ''))}</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -695,13 +701,13 @@ else:
             st.markdown("##### ✅ Verified Strengths")
             if strengths:
                 for agent, st_ev in strengths:
-                    quote = st_ev.get("quote", "")
-                    src = st_ev.get("source", "Profile")
+                    quote = esc(st_ev.get("quote", ""))
+                    src = esc(st_ev.get("source", "Profile"))
                     st.markdown(f"""
                     <div class="point-item">
                         "{quote}"
                         <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.3rem;">
-                            — {agent} ({src})
+                            — {esc(agent)} ({src})
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -714,13 +720,13 @@ else:
             st.markdown("##### ⚠️ Concerns & Red Flags")
             if concerns:
                 for agent, co_ev in concerns:
-                    quote = co_ev.get("quote", "")
-                    src = co_ev.get("source", "Profile")
+                    quote = esc(co_ev.get("quote", ""))
+                    src = esc(co_ev.get("source", "Profile"))
                     st.markdown(f"""
                     <div class="point-item">
                         "{quote}"
                         <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.3rem;">
-                            — {agent} ({src})
+                            — {esc(agent)} ({src})
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -733,7 +739,7 @@ else:
         # Decisive Evidence List
         st.markdown("#### Decisive Evidence Citations")
         for dev in decision.get("decisive_evidence", []):
-            st.info(f"\"{dev.get('quote', '')}\" \n\n— **{dev.get('agent_origin', '')}** (Source: *{dev.get('source', '')}*)")
+            st.info(f"\"{esc(dev.get('quote', ''))}\" \n\n— **{esc(dev.get('agent_origin', ''))}** (Source: *{esc(dev.get('source', ''))}*)")
 
     # TAB: Profile View
     with tab_profile:
@@ -747,8 +753,8 @@ else:
             for sk in profile.get("skills_claimed", []):
                 st.markdown(f"""
                 <div style="background: rgba(255,255,255,0.02); padding: 0.6rem 0.8rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 0.5rem;">
-                    <strong>{sk.get('skill', '')}</strong> ({sk.get('years_of_experience', 0)} years)<br/>
-                    <span style="font-size: 0.8rem; color: #9ca3af;">{sk.get('context', '')}</span>
+                    <strong>{esc(sk.get('skill', ''))}</strong> ({sk.get('years_of_experience', 0)} years)<br/>
+                    <span style="font-size: 0.8rem; color: #9ca3af;">{esc(sk.get('context', ''))}</span>
                 </div>
                 """, unsafe_allow_html=True)
                 
@@ -757,8 +763,8 @@ else:
             for cl in profile.get("specific_claims", []):
                 st.markdown(f"""
                 <div style="background: rgba(255,255,255,0.02); padding: 0.6rem 0.8rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 0.5rem; border-left: 3px solid #6366f1;">
-                    <strong>Claim:</strong> {cl.get('claim', '')}<br/>
-                    <span style="font-size: 0.8rem; color: #9ca3af; font-style: italic;">Evidence: "{cl.get('evidence', '')}"</span>
+                    <strong>Claim:</strong> {esc(cl.get('claim', ''))}<br/>
+                    <span style="font-size: 0.8rem; color: #9ca3af; font-style: italic;">Evidence: "{esc(cl.get('evidence', ''))}"</span>
                 </div>
                 """, unsafe_allow_html=True)
                 
@@ -766,7 +772,7 @@ else:
             quotes = profile.get("notable_quotes", [])
             if quotes:
                 for q in quotes:
-                    st.markdown(f"*\"{q.get('quote', '')}\"* \n— Context: **{q.get('context', '')}**")
+                    st.markdown(f"*\"{esc(q.get('quote', ''))}\"* \n— Context: **{esc(q.get('context', ''))}**")
             else:
                 st.write("*No interview transcript quotes available (Resume-only mode).*")
 
@@ -784,16 +790,16 @@ else:
                 st.markdown(f"""
                 <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem; height: 100%;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 0.5rem; margin-bottom: 0.75rem;">
-                        <strong style="color: #a5b4fc; font-size: 1.1rem;">{o.get('agentName', 'Agent')}</strong>
+                        <strong style="color: #a5b4fc; font-size: 1.1rem;">{esc(o.get('agentName', 'Agent'))}</strong>
                         <div>
                             <span class="badge-status badge-active" style="margin-right: 0.3rem;">Score: {o.get('score', 0)}/10</span>
                             <span class="badge-status">Conf: {o.get('confidence', 0)}/5</span>
                         </div>
                     </div>
-                    <p style="font-size: 0.88rem; line-height: 1.5; color: #d1d5db; margin-bottom: 0.75rem;">{o.get('opinion', '')}</p>
-                    {f'<div style="background: rgba(239, 68, 68, 0.05); padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(239, 68, 68, 0.15); margin-bottom: 0.75rem; font-size: 0.8rem; color: #f87171;"><strong>Gaps:</strong> {o.get("gaps", "")}</div>' if o.get("gaps") else ''}
+                    <p style="font-size: 0.88rem; line-height: 1.5; color: #d1d5db; margin-bottom: 0.75rem;">{esc(o.get('opinion', ''))}</p>
+                    {f'<div style="background: rgba(239, 68, 68, 0.05); padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(239, 68, 68, 0.15); margin-bottom: 0.75rem; font-size: 0.8rem; color: #f87171;"><strong>Gaps:</strong> {esc(o.get("gaps", ""))}</div>' if o.get("gaps") else ''}
                     <div style="font-size: 0.75rem; font-weight: bold; color: #9ca3af;">Verbatim Evidence:</div>
-                    {"".join([f'<div style="font-size: 0.8rem; background: rgba(255,255,255,0.02); padding: 0.3rem 0.5rem; border-radius: 4px; margin-top: 0.25rem; border: 1px solid rgba(255,255,255,0.04);">"{ev.get("quote", "")}" ({ev.get("source", "")})</div>' for ev in o.get("evidence", [])])}
+                    {"".join([f'<div style="font-size: 0.8rem; background: rgba(255,255,255,0.02); padding: 0.3rem 0.5rem; border-radius: 4px; margin-top: 0.25rem; border: 1px solid rgba(255,255,255,0.04);">"{esc(ev.get("quote", ""))}" ({esc(ev.get("source", ""))})</div>' for ev in o.get("evidence", [])])}
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -831,13 +837,13 @@ else:
                 <div class="debate-turn-node"></div>
                 <div class="debate-card {glow_class}">
                     <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #a5b4fc; margin-bottom: 0.5rem;">
-                        <strong>{turn.get('agent', '')}</strong>
-                        <span>Reacting to: <strong>{turn.get('reacting_to', '')}</strong></span>
+                        <strong>{esc(turn.get('agent', ''))}</strong>
+                        <span>Reacting to: <strong>{esc(turn.get('reacting_to', ''))}</strong></span>
                     </div>
-                    <p style="font-size: 0.88rem; line-height: 1.5; color: #d1d5db; margin-bottom: 0.5rem;">{turn.get('new_position', {}).get('opinion', '')}</p>
+                    <p style="font-size: 0.88rem; line-height: 1.5; color: #d1d5db; margin-bottom: 0.5rem;">{esc(turn.get('new_position', {}).get('opinion', ''))}</p>
                     {shift_row_html}
                     <div style="font-size: 0.8rem; color: #9ca3af; margin-top: 0.3rem;">
-                        <strong>Reason:</strong> {turn.get('reason_for_change_or_holding', '')}
+                        <strong>Reason:</strong> {esc(turn.get('reason_for_change_or_holding', ''))}
                     </div>
                 </div>
             </div>
@@ -855,9 +861,9 @@ else:
             st.markdown(f"""
             <div style="background: rgba(0,0,0,0.15); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 0.75rem;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
-                    <strong>{w.get('agent', '')}</strong>
-                    <span style="color: {'#34d399' if w.get('weight') == 'High' else '#9ca3af'}">Weight: {w.get('weight', '')}</span>
+                    <strong>{esc(w.get('agent', ''))}</strong>
+                    <span style="color: {'#34d399' if w.get('weight') == 'High' else '#9ca3af'}">Weight: {esc(w.get('weight', ''))}</span>
                 </div>
-                <span style="font-size: 0.85rem; color: #9ca3af;">{w.get('reason', '')}</span>
+                <span style="font-size: 0.85rem; color: #9ca3af;">{esc(w.get('reason', ''))}</span>
             </div>
             """, unsafe_allow_html=True)
